@@ -51,8 +51,27 @@ function getMultipleGuideNames(guideIdsString) {
     return `${allButLast}, and ${guides[guides.length - 1].name}`;
 }
 
+// Show/hide completed tours preference (persisted per browser)
+function toggleShowCompleted(which, checked) {
+    localStorage.setItem(`showCompleted_${which}`, checked ? '1' : '');
+    if (which === 'requests') {
+        renderTourRequests();
+    } else {
+        renderPublicToursTable();
+    }
+}
+
+function initShowCompletedToggles() {
+    const reqBox = document.getElementById('showCompletedRequests');
+    const pubBox = document.getElementById('showCompletedPublicTours');
+    if (reqBox) reqBox.checked = !!localStorage.getItem('showCompleted_requests');
+    if (pubBox) pubBox.checked = !!localStorage.getItem('showCompleted_publicTours');
+}
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async function() {
+    initShowCompletedToggles();
+
     // Check for error messages in URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
@@ -680,6 +699,10 @@ function renderTourRequests() {
     let filteredRequests = tourRequests;
     if (statusFilter.value) {
         filteredRequests = tourRequests.filter(req => req.status === statusFilter.value);
+    } else if (!document.getElementById('showCompletedRequests')?.checked) {
+        // Completed requests are hidden by default; reveal them with the
+        // "Show completed" checkbox or by selecting the Completed status filter
+        filteredRequests = tourRequests.filter(req => req.status !== 'completed');
     }
 
     // Sort requests based on selected sort option
@@ -1827,13 +1850,18 @@ function renderPublicTourStats() {
 
 function renderPublicToursTable() {
     const tbody = document.querySelector('#publicToursTable tbody');
-    
-    if (!publicTours || publicTours.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-500 dark:text-gray-400 py-8">No public tours scheduled</td></tr>';
+
+    // Completed tours are hidden unless the "Show completed" checkbox is on
+    const showCompleted = document.getElementById('showCompletedPublicTours')?.checked;
+    const visibleTours = showCompleted ? publicTours : (publicTours || []).filter(t => t.status !== 'completed');
+
+    if (!visibleTours || visibleTours.length === 0) {
+        const hiddenCount = (publicTours || []).length - (visibleTours || []).length;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-gray-500 dark:text-gray-400 py-8">${hiddenCount > 0 ? `No upcoming public tours (${hiddenCount} completed hidden)` : 'No public tours scheduled'}</td></tr>`;
         return;
     }
-    
-    tbody.innerHTML = publicTours.map(tour => {
+
+    tbody.innerHTML = visibleTours.map(tour => {
         // Parse date in local timezone to avoid UTC conversion issues
         const [year, month, day] = tour.date.split('-');
         const tourDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));

@@ -78,6 +78,36 @@ async function mainHandler(event, context) {
 
     console.log(`Found ${tourRequests.length} tour requests, ${publicTours.length} public tours`);
 
+    // Mark past tours as completed: scheduled private requests and active
+    // public tours whose date has passed. Nothing else flips these statuses,
+    // and stale "scheduled" rows clutter the dashboard.
+    let autoCompleted = 0;
+    for (const request of tourRequests) {
+      if (request.status === 'scheduled' && request.preferred_date && request.preferred_date <= yesterdayStr) {
+        try {
+          await dataRepository.updateTourRequestStatus(request.id, 'completed');
+          request.status = 'completed';
+          autoCompleted++;
+        } catch (err) {
+          console.error(`Failed to auto-complete request ${request.id}:`, err.message);
+        }
+      }
+    }
+    for (const tour of publicTours) {
+      if (tour.status === 'active' && tour.date && tour.date <= yesterdayStr) {
+        try {
+          await dataRepository.updatePublicTour({ ...tour, status: 'completed' });
+          tour.status = 'completed';
+          autoCompleted++;
+        } catch (err) {
+          console.error(`Failed to auto-complete public tour ${tour.id}:`, err.message);
+        }
+      }
+    }
+    if (autoCompleted > 0) {
+      console.log(`Auto-completed ${autoCompleted} past tour(s)`);
+    }
+
     // Build a set of already-sent feedback requests so re-runs of this job
     // (manual workflow_dispatch, GitHub Actions retries) don't double-send
     const emailLog = await dataRepository.getEmailLog();

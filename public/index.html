@@ -159,6 +159,10 @@
                         <option value="created_at">Sort by: Date Requested</option>
                         <option value="status">Sort by: Status</option>
                     </select>
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 cursor-pointer">
+                        <input type="checkbox" id="showCompletedRequests" onchange="toggleShowCompleted('requests', this.checked)" class="rounded">
+                        Show completed
+                    </label>
                 </div>
 
                 <div class="table-container">
@@ -231,8 +235,12 @@
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-                    <div class="px-6 py-4" style="background: #2F65A7;">
+                    <div class="px-6 py-4 flex items-center justify-between" style="background: #2F65A7;">
                         <h3 class="text-white font-semibold text-lg">🎫 All Public Tours</h3>
+                        <label class="inline-flex items-center gap-2 text-sm text-white cursor-pointer">
+                            <input type="checkbox" id="showCompletedPublicTours" onchange="toggleShowCompleted('publicTours', this.checked)" class="rounded">
+                            Show completed
+                        </label>
                     </div>
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <div class="table-container">
