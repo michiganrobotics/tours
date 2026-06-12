@@ -1,0 +1,45 @@
+name: Daily Tour Reminder Emails
+
+on:
+  schedule:
+    # Run daily at 7:00 AM EST (11:00 UTC, accounting for EST offset)
+    - cron: '0 11 * * *'
+  # Allow manual triggering for testing
+  workflow_dispatch:
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Send reminder emails
+      run: |
+        echo "Triggering daily reminder emails..."
+        
+        # Call the Netlify function endpoint
+        response=$(curl -s -w "%{http_code}" \
+          -X GET \
+          -H "User-Agent: GitHub-Actions-Cron" \
+          -H "X-GitHub-Workflow: daily-reminders" \
+          -H "X-API-Key: ${{ secrets.CRON_API_KEY }}" \
+          https://tours.robotics.umich.edu/api/send-reminder-emails)
+        
+        http_code="${response: -3}"
+        response_body="${response%???}"
+        
+        echo "HTTP Status: $http_code"
+        echo "Response: $response_body"
+        
+        # Check if the request was successful
+        if [ "$http_code" -eq 200 ]; then
+          echo "✅ Reminder emails sent successfully!"
+        else
+          echo "❌ Failed to send reminder emails (HTTP $http_code)"
+          echo "Response body: $response_body"
+          exit 1
+        fi
+        
+    - name: Log completion
+      run: |
+        echo "Daily reminder job completed at $(date -u)"
+        echo "Next run: Tomorrow at 9:00 AM EST"

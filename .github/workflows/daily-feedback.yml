@@ -1,0 +1,46 @@
+name: Daily Tour Feedback Emails
+
+on:
+  schedule:
+    # Run daily at 8:00 AM EST (12:00 UTC, accounting for EST offset)
+    # This runs 1 hour after reminders to give tours time to complete
+    - cron: '0 12 * * *'
+  # Allow manual triggering for testing
+  workflow_dispatch:
+
+jobs:
+  send-feedback:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Send feedback emails
+      run: |
+        echo "Triggering daily feedback emails..."
+        
+        # Call the Netlify function endpoint
+        response=$(curl -s -w "%{http_code}" \
+          -X GET \
+          -H "User-Agent: GitHub-Actions-Cron" \
+          -H "X-GitHub-Workflow: daily-feedback" \
+          -H "X-API-Key: ${{ secrets.CRON_API_KEY }}" \
+          https://tours.robotics.umich.edu/api/send-feedback-emails)
+        
+        http_code="${response: -3}"
+        response_body="${response%???}"
+        
+        echo "HTTP Status: $http_code"
+        echo "Response: $response_body"
+        
+        # Check if the request was successful
+        if [ "$http_code" -eq 200 ]; then
+          echo "✅ Feedback emails sent successfully!"
+        else
+          echo "❌ Failed to send feedback emails (HTTP $http_code)"
+          echo "Response body: $response_body"
+          exit 1
+        fi
+        
+    - name: Log completion
+      run: |
+        echo "Daily feedback job completed at $(date -u)"
+        echo "Next run: Tomorrow at 8:00 AM EST"

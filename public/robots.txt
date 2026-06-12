@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /signup
+Disallow: /
+Disallow: /explore
+Disallow: /feedback
+Disallow: /api/
+Disallow: /.netlify/
+
+Sitemap: https://tours.robotics.umich.edu/sitemap.xml

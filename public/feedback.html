@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tour Feedback - Michigan Robotics</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.google.com/recaptcha/api.js?render=6LeKK2UrAAAAAAKPM3P7FqJRaFprim_ti5EGCFDR"></script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div class="min-h-screen py-8">
+        <div class="max-w-2xl mx-auto px-4">
+            <!-- Header -->
+            <header class="text-center mb-8">
+                <img src="logo.png" alt="University of Michigan" class="h-12 mx-auto mb-4 dark:hidden">
+                <img src="https://robotics.umich.edu/marketing-white.png" alt="University of Michigan" class="h-12 mx-auto mb-4 hidden dark:block">
+                <h1 class="text-3xl font-bold mb-2 text-[#00274C] dark:text-gray-100">Tour Feedback</h1>
+                <p class="text-gray-600 dark:text-gray-300">Help us improve our robotics tours!</p>
+            </header>
+
+            <!-- Feedback Form -->
+            <main role="main" aria-label="Tour feedback form">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8">
+                <form id="feedbackForm" class="space-y-6 form-dark-mode">
+                    <!-- Hidden fields for tour identification -->
+                    <input type="hidden" id="tourId" name="tour_id">
+                    <input type="hidden" id="tourType" name="tour_type">
+                    <input type="hidden" id="registrationId" name="registration_id">
+
+                    <!-- Tour Information Display -->
+                    <div id="tourInfo" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4 mb-6">
+                        <h3 class="font-semibold mb-2 text-[#00274C] dark:text-gray-100">Tour Information</h3>
+                        <div id="tourDetails" class="text-sm text-[#00274C] dark:text-gray-100">
+                            <div class="text-center py-4">
+                                <div class="w-8 h-8 mx-auto mb-2 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                                <p class="text-gray-500 dark:text-gray-400">Loading tour details...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visitor Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="visitorName" class="block font-medium mb-2">Your Name *</label>
+                            <input type="text" id="visitorName" name="visitor_name" required aria-required="true" 
+                                   class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="visitorEmail" class="block font-medium mb-2">Email *</label>
+                            <input type="email" id="visitorEmail" name="visitor_email" required aria-required="true" 
+                                   class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Net Promoter Score -->
+                    <fieldset class="space-y-3">
+                        <legend class="block text-gray-700 dark:text-gray-300 font-medium">How likely are you to recommend Michigan Robotics tours to a friend or colleague? *</legend>
+                        <div class="hidden md:flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <span>Not at all likely</span>
+                            <span>Extremely likely</span>
+                        </div>
+                        <div class="block md:hidden text-center text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <span>0: Not at all likely • 10: Extremely likely</span>
+                        </div>
+                        <div class="flex flex-wrap md:flex-nowrap gap-1 md:gap-2 justify-center" role="radiogroup" aria-labelledby="nps-legend">
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="0" role="radio" aria-checked="false" aria-label="Score 0 - Not at all likely">0</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="1" role="radio" aria-checked="false" aria-label="Score 1">1</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="2" role="radio" aria-checked="false" aria-label="Score 2">2</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="3" role="radio" aria-checked="false" aria-label="Score 3">3</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="4" role="radio" aria-checked="false" aria-label="Score 4">4</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="5" role="radio" aria-checked="false" aria-label="Score 5">5</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="6" role="radio" aria-checked="false" aria-label="Score 6">6</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="7" role="radio" aria-checked="false" aria-label="Score 7">7</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="8" role="radio" aria-checked="false" aria-label="Score 8">8</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="9" role="radio" aria-checked="false" aria-label="Score 9">9</button>
+                            <button type="button" class="nps-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-score="10" role="radio" aria-checked="false" aria-label="Score 10 - Extremely likely">10</button>
+                        </div>
+                        <input type="hidden" id="npsScore" name="nps_score" required>
+                    </fieldset>
+
+                    <!-- NPS Follow-up -->
+                    <div id="npsReasonSection" class="hidden">
+                        <label for="npsReason" class="block font-medium mb-2">What is the primary reason for your score?</label>
+                        <textarea id="npsReason" name="nps_reason" rows="3" 
+                                  class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"></textarea>
+                    </div>
+
+                    <!-- Overall Rating -->
+                    <fieldset class="space-y-3">
+                        <legend class="block text-gray-700 dark:text-gray-300 font-medium">How would you rate your overall tour experience? *</legend>
+                        <div class="hidden md:flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <span>Poor</span>
+                            <span>Excellent</span>
+                        </div>
+                        <div class="block md:hidden text-center text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <span>0: Poor • 10: Excellent</span>
+                        </div>
+                        <div class="flex flex-wrap md:flex-nowrap gap-1 md:gap-2 justify-center" role="radiogroup" aria-labelledby="rating-legend">
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="0" role="radio" aria-checked="false" aria-label="Rating 0 - Poor">0</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="1" role="radio" aria-checked="false" aria-label="Rating 1">1</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="2" role="radio" aria-checked="false" aria-label="Rating 2">2</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="3" role="radio" aria-checked="false" aria-label="Rating 3">3</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="4" role="radio" aria-checked="false" aria-label="Rating 4">4</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="5" role="radio" aria-checked="false" aria-label="Rating 5">5</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="6" role="radio" aria-checked="false" aria-label="Rating 6">6</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="7" role="radio" aria-checked="false" aria-label="Rating 7">7</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="8" role="radio" aria-checked="false" aria-label="Rating 8">8</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="9" role="radio" aria-checked="false" aria-label="Rating 9">9</button>
+                            <button type="button" class="rating-btn w-8 h-8 md:w-12 md:h-12 border-2 rounded-lg hover:border-blue-500 focus:outline-none focus:border-blue-500 transition-colors text-xs md:text-base" data-rating="10" role="radio" aria-checked="false" aria-label="Rating 10 - Excellent">10</button>
+                        </div>
+                        <input type="hidden" id="overallRating" name="overall_rating" required>
+                    </fieldset>
+
+                    <!-- Understanding of Robotics -->
+                    <fieldset>
+                        <legend class="block text-gray-700 dark:text-gray-300 font-medium mb-3">Did you gain a greater understanding of the current state of robotics? *</legend>
+                        <div class="space-y-2">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="understanding_robotics" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-blue-500 focus:ring-2">
+                                <span class="ml-3 text-gray-700 dark:text-gray-300">Yes</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="understanding_robotics" value="Somewhat" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-blue-500 focus:ring-2">
+                                <span class="ml-3 text-gray-700 dark:text-gray-300">Somewhat</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="understanding_robotics" value="No" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-blue-500 focus:ring-2">
+                                <span class="ml-3 text-gray-700 dark:text-gray-300">No</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <!-- Impression Change -->
+                    <fieldset>
+                        <legend class="block text-gray-700 dark:text-gray-300 font-medium mb-3">Did your impression of Michigan Robotics change? *</legend>
+                        <div class="space-y-2">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="impression_changed" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-blue-500 focus:ring-2" onchange="toggleImpressionDetails(true)">
+                                <span class="ml-3 text-gray-700 dark:text-gray-300">Yes</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="impression_changed" value="No" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-blue-500 focus:ring-2" onchange="toggleImpressionDetails(false)">
+                                <span class="ml-3 text-gray-700 dark:text-gray-300">No</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <!-- Impression Details -->
+                    <div id="impressionDetailsSection" class="hidden">
+                        <label for="impressionDetails" class="block font-medium mb-2">If yes, how so?</label>
+                        <textarea id="impressionDetails" name="impression_details" rows="3" 
+                                  class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"></textarea>
+                    </div>
+
+                    <!-- What Liked Most -->
+                    <div>
+                        <label class="block font-medium mb-2">What did you like most about the tour?</label>
+                        <textarea name="what_liked_most" rows="3" 
+                                  class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"></textarea>
+                    </div>
+
+                    <!-- Suggestions for Improvement -->
+                    <div>
+                        <label class="block font-medium mb-2">How could we improve the tour experience?</label>
+                        <textarea name="suggestions_improvement" rows="3" 
+                                  class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"></textarea>
+                    </div>
+
+                    <!-- Other Comments -->
+                    <div>
+                        <label class="block font-medium mb-2">Any other comments or feedback?</label>
+                        <textarea name="other_comments" rows="3" 
+                                  class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4">
+                        <button type="submit" id="submitFeedback" 
+                                class="w-full bg-[#00274C] hover:bg-[#FFCB05] hover:text-[#00274C] text-white dark:bg-transparent dark:border-2 dark:border-blue-500 dark:text-white dark:hover:bg-blue-500 dark:hover:border-blue-500 font-medium px-6 py-3 rounded-lg transition-colors flex items-center justify-center cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed">
+                            <span id="submitText">Submit Feedback</span>
+                            <svg id="submitSpinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="mt-4 mb-2 text-xs text-gray-600 dark:text-gray-300">
+                        This site is protected by reCAPTCHA and the Google
+                        <a href="https://policies.google.com/privacy" target="_blank" class="text-indigo-600 dark:text-blue-400 hover:underline hover:text-indigo-800 dark:hover:text-blue-300">Privacy Policy</a> and
+                        <a href="https://policies.google.com/terms" target="_blank" class="text-indigo-600 dark:text-blue-400 hover:underline hover:text-indigo-800 dark:hover:text-blue-300">Terms of Service</a> apply.
+                    </div>
+                </form>
+            </div>
+
+            <!-- Thank You Message (Hidden) -->
+            <div id="thankYouMessage" class="hidden bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 text-center">
+                <div class="text-green-600 dark:text-green-400 text-6xl mb-4">✓</div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Thank You!</h2>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">Your feedback has been submitted successfully.</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">We appreciate you taking the time to help us improve our tours.</p>
+            </div>
+
+            <!-- Error Message (Hidden) -->
+            <div id="errorMessage" class="hidden bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-600 rounded-lg p-4 text-center text-red-700 dark:text-red-200">
+                <p class="font-medium">Unable to submit feedback</p>
+                <p class="text-sm mt-1">Please try again or contact us if the problem persists.</p>
+            </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="feedback.js"></script>
+</body>
+</html>

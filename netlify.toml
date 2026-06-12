@@ -1,0 +1,325 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Block ESPN clone content - catch sports/entertainment URLs before app routes
+[[redirects]]
+  from = "/nfl/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/nba/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/wnba/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/college-football/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/college-sports/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/fantasy/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/espnplus/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/show/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/story/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/nhl/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/mlb/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/mls/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/mma/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/boxing/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/soccer/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/tennis/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/golf/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/horse-racing/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/cricket/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/rugby/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/olympics/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/racing/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/esports/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/betting/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/gambling/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/sports/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/entertainment/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/watch/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/video/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/live/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/scores/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/standings/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/schedule/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/news/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/highlights/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/stats/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/recruiting/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/draft/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/playoffs/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/championship/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/bowl/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/tournament/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/where-to-watch/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/nba-g-league/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/little-league-world-series/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/passport/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/my-list-shows/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/troubleshooting/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/mens-college-basketball/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/ufl/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/tgl/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/shows/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/womens-college-basketball/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/espn/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/my-list-videos/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/search*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/explore/arts*"
+  to = "/"
+  status = 301
+
+# Application-specific redirects
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/auth/callback"
+  to = "/.netlify/functions/auth-callback"
+  status = 200
+
+[[redirects]]
+  from = "/signup"
+  to = "/signup.html"
+  status = 200
+
+[[redirects]]
+  from = "/explore"
+  to = "/index.html"
+  status = 301
+
+# Catch-all for SPA routing (legitimate app routes)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[dev]
+  port = 4000
+
+[functions]
+  node_bundler = "esbuild"

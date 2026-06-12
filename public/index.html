@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotics Tours Dashboard</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 auth-checking">
+    <!-- Auth checking overlay -->
+    <div id="authOverlay" class="auth-overlay bg-gray-50 dark:bg-gray-900">
+        <div class="text-center">
+            <div class="auth-spinner mb-4 border-4 border-gray-200 dark:border-gray-600 border-t-purple-600 dark:border-t-purple-400"></div>
+            <p class="text-lg font-medium text-gray-700 dark:text-gray-300">Booting up...</p>
+        </div>
+    </div>
+    
+    <div class="min-h-screen">
+        <header class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-8 shadow-lg" style="background: linear-gradient(135deg, #702F8A 0%, #8E44AD 100%);">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                <div class="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0">
+                    <img src="https://robotics.umich.edu/marketing-white.png" alt="University of Michigan" class="h-8 md:h-10 w-auto object-contain flex-shrink-0 self-start md:self-auto">
+                    <h1 class="text-xl md:text-2xl lg:text-3xl font-bold leading-tight">Building Tours Dashboard</h1>
+                </div>
+            </div>
+            <nav class="flex flex-wrap gap-2 md:gap-4 mt-6" role="navigation" aria-label="Dashboard navigation">
+                <button class="tab-btn bg-white text-purple-900 px-3 md:px-4 py-2 rounded-lg transition-all text-sm md:text-base cursor-pointer" data-tab="overview" aria-pressed="true" aria-controls="overview">Overview</button>
+                <button class="tab-btn bg-white/20 hover:bg-white/30 text-white px-3 md:px-4 py-2 rounded-lg transition-all text-sm md:text-base cursor-pointer" data-tab="requests" aria-pressed="false" aria-controls="requests">Requests</button>
+                <button class="tab-btn bg-white/20 hover:bg-white/30 text-white px-3 md:px-4 py-2 rounded-lg transition-all text-sm md:text-base cursor-pointer" data-tab="public-tours" aria-pressed="false" aria-controls="public-tours">Public Tours</button>
+                <button class="tab-btn bg-white/20 hover:bg-white/30 text-white px-3 md:px-4 py-2 rounded-lg transition-all text-sm md:text-base cursor-pointer" data-tab="guides" aria-pressed="false" aria-controls="guides">Guides</button>
+                <button class="tab-btn bg-white/20 hover:bg-white/30 text-white px-3 md:px-4 py-2 rounded-lg transition-all text-sm md:text-base cursor-pointer" data-tab="feedback" aria-pressed="false" aria-controls="feedback">Feedback</button>
+                <a href="/signup" target="_blank" class="bg-white/20 hover:bg-white/30 text-white px-3 md:px-4 py-2 rounded-lg transition-all text-sm md:text-base cursor-pointer" aria-label="Tour Signup (opens in new tab)">Tour Signup <svg class="inline w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
+                <a href="https://calendar.google.com/calendar/embed?src=c_79bd4d6683eb4705e4d438d75bda3229b082a9c2ddf1bc55bd06bc062b3c967a%40group.calendar.google.com" target="_blank" class="bg-white/20 hover:bg-white/30 text-white px-3 md:px-4 py-2 rounded-lg transition-all text-sm md:text-base cursor-pointer" aria-label="Google Calendar (opens in new tab)">Google Calendar <svg class="inline w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
+            </nav>
+        </header>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-white dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 z-40 flex items-center justify-center hidden">
+            <div class="text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 dark:border-purple-400 mb-4"></div>
+                <p id="loadingMessage" class="text-lg font-medium text-gray-700 dark:text-gray-300">Reticulating splines...</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading tour information from Google Sheets</p>
+            </div>
+        </div>
+
+        <main class="p-4 md:p-8" role="main">
+            <!-- Overview Tab -->
+            <div class="tab-content block" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                <h2 class="sr-only">Dashboard Statistics</h2>
+                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center">
+                        <h3 class="text-gray-600 dark:text-gray-300 text-sm uppercase tracking-wide mb-2">Total Requests</h3>
+                        <div class="text-4xl font-bold text-[#00274C] dark:text-gray-100" id="totalRequests">0</div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center">
+                        <h3 class="text-gray-600 dark:text-gray-300 text-sm uppercase tracking-wide mb-2">Total Visitors</h3>
+                        <div class="text-4xl font-bold text-[#00B2A9] dark:text-gray-100" id="totalVisitors">0</div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center">
+                        <h3 class="text-gray-600 dark:text-gray-300 text-sm uppercase tracking-wide mb-2">Pending Requests</h3>
+                        <div class="text-4xl font-bold text-[#D86018] dark:text-gray-100" id="pendingRequests">0</div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center">
+                        <h3 class="text-gray-600 dark:text-gray-300 text-sm uppercase tracking-wide mb-2">Completed Requests</h3>
+                        <div class="text-4xl font-bold text-[#75988d] dark:text-gray-100" id="completedRequests">0</div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center">
+                        <h3 class="text-gray-600 dark:text-gray-300 text-sm uppercase tracking-wide mb-2">Active Guides</h3>
+                        <div class="text-4xl font-bold text-[#2F65A7] dark:text-gray-100" id="activeGuides">0</div>
+                    </div>
+                </div>
+                
+                <!-- Upcoming Tours and Recent Activity - Two Column Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Upcoming Scheduled Tours -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4" style="background: #2F65A7;">
+                            <h3 class="text-white font-semibold text-lg">📅 Upcoming Scheduled Tours</h3>
+                        </div>
+                        <div class="p-6 text-gray-900 dark:text-gray-100">
+                            <div id="upcomingTours" class="space-y-3">
+                                <!-- Tours will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4" style="background: #75988d;">
+                            <h3 class="text-white font-semibold text-lg">📋 Recent Activity</h3>
+                        </div>
+                        <div class="p-6 text-gray-900 dark:text-gray-100">
+                            <div id="recentActivity" class="space-y-3">
+                                <!-- Activity will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Database Access Section -->
+                <div class="bg-orange-50 dark:bg-transparent border border-[#D86018] rounded-xl p-6 mb-8 mt-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">📊 Database Access</h3>
+                            <p class="text-gray-700 dark:text-gray-200 text-sm">Need to manually edit the database? Access the Google Sheets directly for advanced data management.</p>
+                        </div>
+                        <a href="https://docs.google.com/spreadsheets/d/11Yf4Y7g8FAAGJXPIUgkPcDY880MALbqfPyivm1E8dPg/edit" target="_blank" class="bg-transparent hover:bg-[#D86018] border border-[#D86018] hover:text-white dark:text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Open Google Sheets
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- Tour Requests Tab -->
+            <div class="tab-content hidden" id="requests" role="tabpanel" aria-labelledby="requests-tab">
+                <div class="section-header">
+                    <h2>Tour Requests</h2>
+                    <button class="bg-[#00274C] hover:bg-[#FFCB05] hover:text-[#00274C] text-white dark:bg-transparent dark:border-2 dark:border-blue-500 dark:text-white dark:hover:bg-blue-500 dark:hover:border-blue-500 font-medium px-6 py-3 rounded-lg transition-all duration-200 cursor-pointer" onclick="showNewRequestForm()">New Request</button>
+                </div>
+                
+                <div class="rounded-lg mb-6 border border-[#2F65A7]">
+                    <button class="w-full p-4 text-left flex items-center justify-between focus:outline-none" onclick="toggleEmailWorkflow()">
+                        <h3 class="font-semibold text-[#00274C] dark:text-gray-100">📧 Tour Request Email Workflow</h3>
+                        <svg id="emailWorkflowIcon" class="w-5 h-5 transform transition-transform duration-200 text-[#00274C] dark:text-gray-100" style="transform: rotate(-90deg);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="emailWorkflowContent" class="px-4 pb-4 text-sm space-y-1 hidden text-[#2F65A7] dark:text-blue-200">
+                        <p><strong>1. Request Received:</strong> Visitor gets confirmation email + Admin gets notification email</p>
+                        <p><strong>2. Guide Assigned:</strong> Guide gets assignment email + Visitor gets tour confirmation email</p>
+                        <p><strong>3. Tour Cancelled:</strong> Assigned guide receives cancellation notification</p>
+                        <p><strong>4. Tour Reminders:</strong> Reminders sent to guide and visitor day before tour</p>
+                        <p><strong>5. Tour Feedback:</strong> Feedback request sent to visitor day after tour</p>
+                        <p class="mt-2 text-[#00274C] dark:text-gray-100"><em>All emails include t-shirt orders, calendar events, and are sent automatically</em></p>
+                    </div>
+                </div>
+                
+                <div class="filters">
+                    <select id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                    <select id="sortFilter">
+                        <option value="preferred_date">Sort by: Preferred Date (Newest First)</option>
+                        <option value="created_at">Sort by: Date Requested</option>
+                        <option value="status">Sort by: Status</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table id="requestsTable">
+                        <thead>
+                            <tr>
+                                <th>Date Requested</th>
+                                <th>Visitor Name</th>
+                                <th>Email</th>
+                                <th>Group Size</th>
+                                <th>Preferred Date</th>
+                                <th>Assigned Guide</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Public Tours Tab -->
+            <div class="tab-content hidden" id="public-tours" role="tabpanel" aria-labelledby="public-tours-tab">
+                <div class="section-header">
+                    <h2>Public Tours</h2>
+                    <button class="bg-[#00274C] hover:bg-[#FFCB05] hover:text-[#00274C] text-white dark:bg-transparent dark:border-2 dark:border-blue-500 dark:text-white dark:hover:bg-blue-500 dark:hover:border-blue-500 font-medium px-6 py-3 rounded-lg transition-all duration-200 cursor-pointer" onclick="showNewPublicTourForm()">Schedule Public Tour</button>
+                </div>
+
+                <div class="rounded-lg mb-6 border border-[#2F65A7]">
+                    <button class="w-full p-4 text-left flex items-center justify-between focus:outline-none" onclick="togglePublicTourEmailWorkflow()">
+                        <h3 class="font-semibold text-[#00274C] dark:text-gray-100">📧 Public Tour Email Workflow</h3>
+                        <svg id="publicTourEmailWorkflowIcon" class="w-5 h-5 transform transition-transform duration-200 text-[#00274C] dark:text-gray-100" style="transform: rotate(-90deg);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="publicTourEmailWorkflowContent" class="px-4 pb-4 text-sm space-y-1 hidden text-[#2F65A7] dark:text-blue-200">
+                        <p><strong>1. Tour Scheduled:</strong> Guide receives notification of new public tour assignment</p>
+                        <p><strong>2. Visitor Registers:</strong> Visitor receives confirmation email upon registration</p>
+                        <p><strong>3. Tour Cancelled:</strong> Assigned guide receives cancellation notification</p>
+                        <p><strong>4. Tour Reminders:</strong> Day before reminders sent to visitors and guide</p>
+                        <p><strong>5. Tour Feedback:</strong> Day after tour feedback email sent to visitors</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Upcoming Public Tours -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4" style="background: #00274C;">
+                            <h3 class="text-white font-semibold text-lg">📅 Upcoming Public Tours</h3>
+                        </div>
+                        <div class="p-6 text-gray-900 dark:text-gray-100">
+                            <div id="upcomingPublicTours" class="space-y-3">
+                                <!-- Upcoming public tours will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registration Statistics -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 bg-teal-500 dark:bg-teal-600">
+                            <h3 class="text-white font-semibold text-lg">📊 Registration Stats</h3>
+                        </div>
+                        <div class="p-6 text-gray-900 dark:text-gray-100">
+                            <div id="publicTourStats" class="space-y-4">
+                                <!-- Statistics will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                    <div class="px-6 py-4" style="background: #2F65A7;">
+                        <h3 class="text-white font-semibold text-lg">🎫 All Public Tours</h3>
+                    </div>
+                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                        <div class="table-container">
+                            <table id="publicToursTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Type</th>
+                                        <th>Guide</th>
+                                        <th>Capacity</th>
+                                        <th>Registered</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Public tours will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tour Guides Tab -->
+            <div class="tab-content hidden" id="guides" role="tabpanel" aria-labelledby="guides-tab">
+                <div class="section-header">
+                    <h2>Tour Guides</h2>
+                    <button class="bg-[#00274C] hover:bg-[#FFCB05] hover:text-[#00274C] text-white dark:bg-transparent dark:border-2 dark:border-blue-500 dark:text-white dark:hover:bg-blue-500 dark:hover:border-blue-500 font-medium px-6 py-3 rounded-lg transition-all duration-200 cursor-pointer" onclick="showNewGuideForm()">Add Guide</button>
+                </div>
+
+                <div class="rounded-lg mb-6 border border-[#2F65A7]">
+                    <button class="w-full p-4 text-left flex items-center justify-between focus:outline-none" onclick="toggleTourResources()">
+                        <h3 class="font-semibold text-[#00274C] dark:text-gray-100">📋 Tour Resources</h3>
+                        <svg id="tour-resources-chevron" class="w-5 h-5 transform transition-transform duration-200 text-[#00274C] dark:text-gray-100" style="transform: rotate(-90deg);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="tour-resources-content" class="px-4 pb-4 text-sm space-y-1 hidden text-[#2F65A7] dark:text-blue-200">
+                        <p>
+                            <a 
+                                href="https://docs.google.com/document/d/1VP3LRdrxviWZfj7OH47Ct1lBOq3bR8TjxJne18O-zrs/edit?usp=sharing" 
+                                target="_blank"
+                                class="text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-800 dark:hover:text-blue-300"
+                            >
+                                <strong>Tour Outline Script</strong>
+                            </a>
+                            - Essential guide for conducting building tours
+                        </p>
+                    </div>
+                </div>
+
+                <div class="guides-grid" id="guidesGrid">
+                    <!-- Guide cards will be populated here -->
+                </div>
+            </div>
+
+            <!-- Feedback Tab -->
+            <div class="tab-content hidden" id="feedback" role="tabpanel" aria-labelledby="feedback-tab">
+                <div class="section-header">
+                    <h2>Tour Feedback</h2>
+                </div>
+
+                <!-- NPS Score Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border dark:border-gray-600">
+                        <h3 class="text-lg font-semibold mb-2 text-[#00274C] dark:text-gray-100">Net Promoter Score</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Would you recommend this tour?</p>
+                        <div class="text-center">
+                            <div id="npsScore" class="text-4xl font-bold mb-2 text-[#702F8A] dark:text-purple-400">--</div>
+                            <div id="npsCategory" class="text-sm text-gray-600 dark:text-gray-300 mb-4">Loading...</div>
+                            <div class="grid grid-cols-3 gap-2 text-sm">
+                                <div class="text-center">
+                                    <div id="detractors" class="font-semibold text-red-600 dark:text-red-400">--</div>
+                                    <div class="text-gray-500 dark:text-gray-300">Detractors</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="passives" class="font-semibold text-yellow-600 dark:text-yellow-400">--</div>
+                                    <div class="text-gray-500 dark:text-gray-300">Passives</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="promoters" class="font-semibold text-green-600 dark:text-green-400">--</div>
+                                    <div class="text-gray-500 dark:text-gray-300">Promoters</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600 text-xs text-gray-500 dark:text-gray-400">
+                                <div class="text-center">
+                                    <div class="mb-1">Score Range: -100 to +100</div>
+                                    <div>Scores 0-6: Detractors • 7-8: Passives • 9-10: Promoters</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Summary -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border dark:border-gray-600">
+                        <h3 class="text-lg font-semibold mb-4 text-[#00274C] dark:text-gray-100">Feedback summary</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 dark:text-gray-300">Total Responses:</span>
+                                <span id="totalResponses" class="font-semibold text-gray-900 dark:text-gray-100">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 dark:text-gray-300">Average Rating:</span>
+                                <span id="averageRating" class="font-semibold text-gray-900 dark:text-gray-100">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border dark:border-gray-600">
+                        <h3 class="text-lg font-semibold mb-4 text-[#00274C] dark:text-gray-100">Recent overall ratings</h3>
+                        <div id="recentFeedback" class="space-y-2 text-sm text-gray-900 dark:text-gray-100">
+                            <!-- Recent feedback items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Comments Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- What Drove Your Rating -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border dark:border-gray-600">
+                        <h3 class="text-lg font-semibold mb-4 text-[#00274C] dark:text-gray-100">What drove your rating?</h3>
+                        <div id="drivingFactors" class="space-y-3 text-gray-900 dark:text-gray-100">
+                            <!-- Driving factors will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Additional Comments -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border dark:border-gray-600">
+                        <h3 class="text-lg font-semibold mb-4 text-[#00274C] dark:text-gray-100">Additional comments</h3>
+                        <div id="additionalComments" class="space-y-3 text-gray-900 dark:text-gray-100">
+                            <!-- Additional comments will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Impact Metrics Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Impression Change -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border dark:border-gray-600">
+                        <h3 class="text-lg font-semibold mb-4 text-[#00274C] dark:text-gray-100">Michigan Robotics impression</h3>
+                        <div id="impressionChange" class="space-y-3 text-gray-900 dark:text-gray-100">
+                            <!-- Impression change metrics and comments will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Understanding of Robotics -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border dark:border-gray-600">
+                        <div id="understandingRobotics" class="space-y-3 text-gray-900 dark:text-gray-100">
+                            <!-- Understanding metrics will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Feedback Table -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border dark:border-gray-600">
+                    <div class="p-6 border-b dark:border-gray-600">
+                        <h3 class="text-lg font-semibold text-[#00274C] dark:text-gray-100">All feedback</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tour Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Guide</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Overall</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">NPS</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Comments</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feedbackTable" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
+                                <!-- Feedback rows will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Feedback Detail Modal -->
+    <div id="feedbackDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-600">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-semibold text-[#00274C] dark:text-gray-100">Feedback Details</h2>
+                        <button onclick="closeFeedbackDetailModal()" class="text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="feedbackDetailContent">
+                        <!-- Feedback details will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed top-4 right-4 z-50 hidden transform translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-4 max-w-sm">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <div id="notification-icon" class="w-5 h-5 rounded-full flex items-center justify-center">
+                        <!-- Icons will be inserted here -->
+                    </div>
+                </div>
+                <div class="ml-3 flex-1">
+                    <p id="notification-title" class="text-sm font-medium text-gray-900"></p>
+                    <p id="notification-message" class="mt-1 text-sm text-gray-500"></p>
+                </div>
+                <div class="ml-4 flex-shrink-0">
+                    <button onclick="hideNotification()" class="text-gray-400 hover:text-gray-600">
+                        <span class="sr-only">Close</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="newRequestModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 m-auto mt-20 p-8 rounded-xl w-11/12 max-w-lg max-h-[80vh] overflow-y-auto">
+            <span class="float-right text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 text-3xl font-bold cursor-pointer" onclick="closeModal('newRequestModal')">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Michigan Robotics Building Tour</h2>
+            <form id="newRequestForm" class="form-dark-mode">
+                <p class="hidden">
+                    <label>Don't fill this out if you're human: <input name="bot-field" /></label>
+                </p>
+                <div class="mb-4 mt-6">
+                    <label for="new-visitor-name" class="block font-medium mb-2">Visitor name:</label>
+                    <input type="text" id="new-visitor-name" name="visitor_name" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="new-visitor-email" class="block font-medium mb-2">Visitor email:</label>
+                    <input type="email" id="new-visitor-email" name="visitor_email" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="text-sm mt-1 text-gray-600 dark:text-gray-300">Visitor will receive email confirmation when this form is submitted.</p>
+                </div>
+                <div class="mb-4">
+                    <label for="new-visitor-phone" class="block font-medium mb-2">Visitor phone:</label>
+                    <input type="tel" id="new-visitor-phone" name="visitor_phone" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="new-group-size" class="block font-medium mb-2">Group size:</label>
+                    <input type="number" id="new-group-size" name="group_size" min="1" value="1" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="new-preferred-date" class="block font-medium mb-2">Preferred date:</label>
+                    <input type="date" id="new-preferred-date" name="preferred_date" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="new-preferred-time" class="block font-medium mb-2">Preferred time:</label>
+                    <select id="new-preferred-time" name="preferred_time" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select a time</option>
+                        <option value="08:00">8:00 AM</option>
+                        <option value="08:15">8:15 AM</option>
+                        <option value="08:30">8:30 AM</option>
+                        <option value="08:45">8:45 AM</option>
+                        <option value="09:00">9:00 AM</option>
+                        <option value="09:15">9:15 AM</option>
+                        <option value="09:30">9:30 AM</option>
+                        <option value="09:45">9:45 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="10:15">10:15 AM</option>
+                        <option value="10:30">10:30 AM</option>
+                        <option value="10:45">10:45 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="11:15">11:15 AM</option>
+                        <option value="11:30">11:30 AM</option>
+                        <option value="11:45">11:45 AM</option>
+                        <option value="12:00">12:00 PM</option>
+                        <option value="12:15">12:15 PM</option>
+                        <option value="12:30">12:30 PM</option>
+                        <option value="12:45">12:45 PM</option>
+                        <option value="13:00">1:00 PM</option>
+                        <option value="13:15">1:15 PM</option>
+                        <option value="13:30">1:30 PM</option>
+                        <option value="13:45">1:45 PM</option>
+                        <option value="14:00">2:00 PM</option>
+                        <option value="14:15">2:15 PM</option>
+                        <option value="14:30">2:30 PM</option>
+                        <option value="14:45">2:45 PM</option>
+                        <option value="15:00">3:00 PM</option>
+                        <option value="15:15">3:15 PM</option>
+                        <option value="15:30">3:30 PM</option>
+                        <option value="15:45">3:45 PM</option>
+                        <option value="16:00">4:00 PM</option>
+                        <option value="16:15">4:15 PM</option>
+                        <option value="16:30">4:30 PM</option>
+                        <option value="16:45">4:45 PM</option>
+                        <option value="17:00">5:00 PM</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="tshirtRequest" class="flex items-start cursor-pointer group">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="tshirtRequest" name="tshirt_request" onchange="toggleTshirtGrid()" class="h-5 w-5 mr-3 text-blue-600 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded focus:ring-blue-500 focus:ring-2">
+                            <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mr-3 group-hover:bg-blue-400 transition-colors"></div>
+                        </div>
+                        <span class="text-gray-700 dark:text-gray-300">Visitor would like to purchase t-shirts.</span>
+                    </label>
+                </div>
+                <div class="mb-4 hidden" id="tshirtGrid">
+                    <div class="flex gap-8 mb-4 justify-center">
+                        <div class="flex flex-col items-center">
+                            <img src="shirt.png" alt="Robotics t-shirt" class="w-44 h-44 object-contain mb-2 hidden" id="tshirtImage">
+                            <div class="text-sm text-gray-600 dark:text-gray-300 font-medium">Front</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <img src="shirt-back.jpg" alt="Robotics t-shirt back design" class="w-44 h-44 object-contain mb-2 hidden" id="tshirtImage2">
+                            <div class="text-sm text-gray-600 dark:text-gray-300 font-medium">Back</div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                         <div class="text-sm text-gray-700 dark:text-gray-300">Select sizes ($20 each - pay with credit card at tour) or <a href="https://www.aatwebstore.com/UMBOT/shop/home" target="_blank" class="text-indigo-600 dark:text-blue-400 hover:underline hover:text-indigo-800 dark:hover:text-blue-300">purchase more gear online</a>:</div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mb-3">
+                        <div class="flex items-center gap-1 min-w-0">
+                            <label for="tshirt-xs" class="font-medium text-sm whitespace-nowrap">XS:</label>
+                            <input type="number" id="tshirt-xs" name="tshirt_xs" min="0" value="0" class="w-12 px-1 py-1 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:outline-none focus:ring-1 focus:ring-2 flex-shrink-0">
+                        </div>
+                        <div class="flex items-center gap-1 min-w-0">
+                            <label for="tshirt-s" class="font-medium text-sm whitespace-nowrap">S:</label>
+                            <input type="number" id="tshirt-s" name="tshirt_s" min="0" value="0" class="w-12 px-1 py-1 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:outline-none focus:ring-1 focus:ring-2 flex-shrink-0">
+                        </div>
+                        <div class="flex items-center gap-1 min-w-0">
+                            <label for="tshirt-m" class="font-medium text-sm whitespace-nowrap">M:</label>
+                            <input type="number" id="tshirt-m" name="tshirt_m" min="0" value="0" class="w-12 px-1 py-1 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:outline-none focus:ring-1 focus:ring-2 flex-shrink-0">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="flex items-center gap-1 min-w-0">
+                            <label for="tshirt-l" class="font-medium text-sm whitespace-nowrap">L:</label>
+                            <input type="number" id="tshirt-l" name="tshirt_l" min="0" value="0" class="w-12 px-1 py-1 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:outline-none focus:ring-1 focus:ring-2 flex-shrink-0">
+                        </div>
+                        <div class="flex items-center gap-1 min-w-0">
+                            <label for="tshirt-xl" class="font-medium text-sm whitespace-nowrap">XL:</label>
+                            <input type="number" id="tshirt-xl" name="tshirt_xl" min="0" value="0" class="w-12 px-1 py-1 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:outline-none focus:ring-1 focus:ring-2 flex-shrink-0">
+                        </div>
+                        <div class="flex items-center gap-1 min-w-0">
+                            <label for="tshirt-xxl" class="font-medium text-sm whitespace-nowrap">XXL:</label>
+                            <input type="number" id="tshirt-xxl" name="tshirt_xxl" min="0" value="0" class="w-12 px-1 py-1 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:outline-none focus:ring-1 focus:ring-2 flex-shrink-0">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="newsletterSignup" class="flex items-start cursor-pointer group">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="newsletterSignup" name="newsletter_signup" class="h-5 w-5 mr-3 text-blue-600 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded focus:ring-blue-500 focus:ring-2">
+                            <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mr-3 group-hover:bg-blue-400 transition-colors"></div>
+                        </div>
+                        <span class="text-gray-700 dark:text-gray-300">Visitor wants to sign up for the <a href="https://umrobotics.substack.com/" target="_blank" class="text-indigo-600 dark:text-blue-400 hover:underline hover:text-indigo-800 dark:hover:text-blue-300">quarterly email newsletter</a>.</span>
+                    </label>
+                </div>
+                <div class="mb-6">
+                    <label for="new-additional-info" class="block font-medium mb-2">Any additional information we should know?</label>
+                    <textarea id="new-additional-info" name="additional_info" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical min-h-[80px]"></textarea>
+                </div>
+                 <div class="mb-6">
+                    <p class="text-sm text-gray-700 dark:text-gray-300 italic">Already have a tour guide in mind? Submit this form then assign a guide in the table.</p>
+                </div>
+                <button type="submit" id="submitButton" class="bg-[#00274C] hover:bg-[#2F65A7] text-white font-medium px-6 py-3 rounded-lg w-full transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center" >
+                    <svg id="submitButtonSpinner" class="hidden animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span id="submitButtonText">Submit request</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="newGuideModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 m-auto mt-20 p-8 rounded-xl w-11/12 max-w-lg max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add Tour Guide</h2>
+                <button onclick="closeModal('newGuideModal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+            <form id="newGuideForm" class="space-y-4 form-dark-mode">
+                <div>
+                    <label for="new-guide-name" class="block font-medium mb-2">Name:</label>
+                    <input type="text" id="new-guide-name" name="name" autocomplete="name" required class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="new-guide-email" class="block font-medium mb-2">Email:</label>
+                    <input type="email" id="new-guide-email" name="email" autocomplete="email" required class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="new-guide-phone" class="block font-medium mb-2">Phone:</label>
+                    <input type="tel" id="new-guide-phone" name="phone" autocomplete="tel" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="new-guide-availability" class="block font-medium mb-2">Availability:</label>
+                    <textarea id="new-guide-availability" name="availability" placeholder="e.g., Mon-Fri 9am-5pm, Weekends by appointment" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical" rows="3"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-[#00274C] hover:bg-[#FFCB05] hover:text-[#00274C] text-white dark:text-white font-medium px-6 py-3 rounded-lg transition-colors cursor-pointer">Add Guide</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Request Modal -->
+    <div id="editRequestModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 m-auto mt-20 p-8 rounded-xl w-11/12 max-w-lg max-h-[80vh] overflow-y-auto">
+            <span class="float-right text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 text-3xl font-bold cursor-pointer" onclick="closeModal('editRequestModal')">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Edit Tour Request</h2>
+            <div class="bg-amber-50 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-600 rounded-lg p-3 mb-4">
+                <p class="text-amber-800 dark:text-amber-200 text-sm">
+                    <strong>Note:</strong> Editing tour request details will not trigger email notifications. Only status changes and guide assignments send automated emails.
+                </p>
+            </div>
+            <form id="editRequestForm" class="form-dark-mode">
+                <input type="hidden" id="editRequestId" name="id">
+                <div class="mb-4">
+                    <label for="editVisitorName" class="block font-medium mb-2">Visitor name:</label>
+                    <input type="text" id="editVisitorName" name="visitor_name" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editVisitorEmail" class="block font-medium mb-2">Email:</label>
+                    <input type="email" id="editVisitorEmail" name="visitor_email" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editVisitorPhone" class="block font-medium mb-2">Phone:</label>
+                    <input type="tel" id="editVisitorPhone" name="visitor_phone" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editGroupSize" class="block font-medium mb-2">Group size:</label>
+                    <input type="number" id="editGroupSize" name="group_size" min="1" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editPreferredDate" class="block font-medium mb-2">Preferred date:</label>
+                    <input type="date" id="editPreferredDate" name="preferred_date" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editPreferredTime" class="block font-medium mb-2">Preferred time:</label>
+                    <input type="time" id="editPreferredTime" name="preferred_time" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-6">
+                    <label for="editAdditionalInfo" class="block font-medium mb-2">Additional information:</label>
+                    <textarea id="editAdditionalInfo" name="additional_info" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical min-h-[80px]"></textarea>
+                </div>
+                <button type="submit" class="bg-[#00274C] hover:bg-[#2F65A7] text-white font-medium px-6 py-3 rounded-lg w-full transition-colors cursor-pointer" >
+                    Update Request
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Guide Modal -->
+    <div id="editGuideModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 m-auto mt-20 p-8 rounded-xl w-11/12 max-w-lg max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Tour Guide</h2>
+                <button onclick="closeModal('editGuideModal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+            <form id="editGuideForm" class="space-y-4 form-dark-mode">
+                <input type="hidden" id="editGuideId" name="id">
+                <div>
+                    <label for="editGuideName" class="block font-medium mb-2">Name:</label>
+                    <input type="text" id="editGuideName" name="name" autocomplete="name" required class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="editGuideEmail" class="block font-medium mb-2">Email:</label>
+                    <input type="email" id="editGuideEmail" name="email" autocomplete="email" required class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="editGuidePhone" class="block font-medium mb-2">Phone:</label>
+                    <input type="tel" id="editGuidePhone" name="phone" autocomplete="tel" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="editGuideAvailability" class="block font-medium mb-2">Availability:</label>
+                    <textarea id="editGuideAvailability" name="availability" placeholder="e.g., Mon-Fri 9am-5pm, Weekends by appointment" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical" rows="3"></textarea>
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" class="bg-red-600 hover:bg-red-700 text-white dark:bg-transparent dark:border-2 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500 dark:hover:text-white dark:hover:border-red-500 font-medium px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer" onclick="deleteGuideFromModal()">Delete Guide</button>
+                    <button type="submit" class="bg-[#00274C] hover:bg-[#FFCB05] hover:text-[#00274C] text-white dark:bg-transparent dark:border-2 dark:border-blue-500 dark:text-white dark:hover:bg-blue-500 dark:hover:border-blue-500 font-medium px-6 py-3 rounded-lg transition-all duration-200 cursor-pointer">Update Guide</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Public Tour Modal -->
+    <div id="newPublicTourModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 m-auto mt-20 p-8 rounded-xl w-11/12 max-w-lg max-h-[80vh] overflow-y-auto">
+            <span class="float-right text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 text-3xl font-bold cursor-pointer" onclick="closeModal('newPublicTourModal')">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Schedule Public Tour</h2>
+            <form id="newPublicTourForm" class="form-dark-mode">
+                <div class="mb-4">
+                    <label for="new-public-tour-title" class="block font-medium mb-2">Tour Title:</label>
+                    <input type="text" id="new-public-tour-title" name="title" value="Friday Public Tour" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="new-public-tour-date" class="block font-medium mb-2">Date:</label>
+                    <input type="date" id="new-public-tour-date" name="date" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="new-public-tour-time" class="block font-medium mb-2">Time:</label>
+                    <input type="time" id="new-public-tour-time" name="time" value="12:00" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="new-public-tour-type" class="block font-medium mb-2">Tour Type:</label>
+                    <select id="new-public-tour-type" name="type" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="Regular">Regular</option>
+                        <option value="Special Event">Special Event</option>
+                        <option value="VIP">VIP</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="new-public-tour-capacity" class="block font-medium mb-2">Capacity:</label>
+                    <input type="number" id="new-public-tour-capacity" name="capacity" min="1" value="15" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="newPublicTourGuide" class="block font-medium mb-2">Assigned Tour Guide:</label>
+                    <select name="assigned_guide_id" id="newPublicTourGuide" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select a tour guide...</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="new-public-tour-notes" class="block font-medium mb-2">Notes:</label>
+                    <textarea id="new-public-tour-notes" name="notes" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical min-h-[80px]" placeholder="Any special notes about this tour..."></textarea>
+                </div>
+                <button type="submit" id="schedulePublicTourBtn" class="bg-[#00274C] hover:bg-[#2F65A7] text-white font-medium px-6 py-3 rounded-lg w-full transition-colors flex items-center justify-center cursor-pointer" >
+                    <span id="schedulePublicTourBtnText">Schedule Tour</span>
+                    <svg id="schedulePublicTourSpinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Public Tour Modal -->
+    <div id="editPublicTourModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 m-auto mt-20 p-8 rounded-xl w-11/12 max-w-lg max-h-[80vh] overflow-y-auto">
+            <span class="float-right text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 text-3xl font-bold cursor-pointer" onclick="closeModal('editPublicTourModal')">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Edit Public Tour</h2>
+            <form id="editPublicTourForm" class="form-dark-mode">
+                <input type="hidden" id="editPublicTourId" name="id">
+                <div class="mb-4">
+                    <label for="editPublicTourTitle" class="block font-medium mb-2">Tour Title:</label>
+                    <input type="text" id="editPublicTourTitle" name="title" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editPublicTourDate" class="block font-medium mb-2">Date:</label>
+                    <input type="date" id="editPublicTourDate" name="date" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editPublicTourTime" class="block font-medium mb-2">Time:</label>
+                    <input type="time" id="editPublicTourTime" name="time" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editPublicTourType" class="block font-medium mb-2">Tour Type:</label>
+                    <select id="editPublicTourType" name="type" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="Regular">Regular</option>
+                        <option value="Special Event">Special Event</option>
+                        <option value="VIP">VIP</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="editPublicTourCapacity" class="block font-medium mb-2">Capacity:</label>
+                    <input type="number" id="editPublicTourCapacity" name="capacity" min="1" required class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label for="editPublicTourStatus" class="block font-medium mb-2">Status:</label>
+                    <select id="editPublicTourStatus" name="status" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="active">Active</option>
+                        <option value="full">Full</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="editPublicTourGuide" class="block font-medium mb-2">Assigned Tour Guide:</label>
+                    <select id="editPublicTourGuide" name="assigned_guide_id" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select a tour guide...</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="editPublicTourNotes" class="block font-medium mb-2">Notes:</label>
+                    <textarea id="editPublicTourNotes" name="notes" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical min-h-[80px]"></textarea>
+                </div>
+                <button type="submit" class="bg-[#00274C] hover:bg-[#2F65A7] text-white font-medium px-6 py-3 rounded-lg w-full transition-colors cursor-pointer" >
+                    Update Tour
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Public Tour Details Modal -->
+    <div id="publicTourDetailsModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 m-auto mt-20 p-8 rounded-xl w-11/12 max-w-4xl max-h-[80vh] overflow-y-auto">
+            <span class="float-right text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 text-3xl font-bold cursor-pointer" onclick="closeModal('publicTourDetailsModal')">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Public Tour Details</h2>
+            <div id="publicTourDetailsContent">
+                <!-- Tour details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Details Modal -->
+    <div id="requestDetailsModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white dark:bg-gray-800 m-auto mt-20 p-8 rounded-xl w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
+            <span class="float-right text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 text-3xl font-bold cursor-pointer" onclick="closeModal('requestDetailsModal')">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Tour Request Details</h2>
+            <div id="requestDetailsContent">
+                <!-- Request details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
