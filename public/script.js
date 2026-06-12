@@ -783,24 +783,35 @@ function renderTourGuides() {
     }).join('');
 }
 
-// Render guide selector with multi-select support
-function renderGuideSelector(requestId, currentGuideIds) {
+// Render guide selector with multi-select support.
+// pending: { type: 'add', name } or { type: 'remove', id } shows an
+// in-flight saving state and disables further changes until it resolves.
+function renderGuideSelector(requestId, currentGuideIds, pending) {
     const selectedIds = parseGuideIds(currentGuideIds);
     const availableGuides = tourGuides.filter(g => !selectedIds.includes(String(g.id)));
+    const spinner = '<span class="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>';
 
     return `
         <div class="flex flex-wrap gap-1 items-center">
             ${selectedIds.map(id => {
                 const guide = tourGuides.find(g => g.id == id);
-                return guide ? `
-                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
+                if (!guide) return '';
+                const removing = pending && pending.type === 'remove' && pending.id === id;
+                return `
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs${removing ? ' opacity-50' : ''}">
                         ${escapeHtml(guide.name)}
-                        <button onclick="removeGuide(${requestId}, '${id}')" class="hover:text-red-600 dark:hover:text-red-400 font-bold">×</button>
+                        ${removing ? spinner : `<button onclick="removeGuide(${requestId}, '${id}')" ${pending ? 'disabled' : ''} class="hover:text-red-600 dark:hover:text-red-400 font-bold">×</button>`}
                     </span>
-                ` : '';
+                `;
             }).join('')}
-            <select class="text-xs px-2 py-1 border rounded dark:bg-gray-700 dark:border-gray-600" onchange="addGuide(${requestId}, this.value); this.value='';">
-                <option value="">+ Add guide</option>
+            ${pending && pending.type === 'add' ? `
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs opacity-50">
+                    ${escapeHtml(pending.name)}
+                    ${spinner}
+                </span>
+            ` : ''}
+            <select class="text-xs px-2 py-1 border rounded dark:bg-gray-700 dark:border-gray-600" ${pending ? 'disabled' : ''} onchange="addGuide(${requestId}, this.value); this.value='';">
+                <option value="">${pending ? 'Saving...' : '+ Add guide'}</option>
                 ${availableGuides.map(g => `
                     <option value="${g.id}">${escapeHtml(g.name)}</option>
                 `).join('')}
@@ -813,11 +824,20 @@ function renderGuideSelector(requestId, currentGuideIds) {
 async function addGuide(requestId, guideId) {
     if (!guideId) return;
 
+    const selector = document.getElementById(`guide-selector-${requestId}`);
+    const request = tourRequests.find(r => r.id == requestId);
+
     try {
-        const request = tourRequests.find(r => r.id == requestId);
         const currentIds = parseGuideIds(request.assigned_guide_id);
 
         if (!currentIds.includes(String(guideId))) {
+            const guide = tourGuides.find(g => g.id == guideId);
+
+            // Show saving state while the server writes and sends emails
+            if (selector) {
+                selector.innerHTML = renderGuideSelector(requestId, request.assigned_guide_id, { type: 'add', name: guide ? guide.name : 'Guide' });
+            }
+
             currentIds.push(String(guideId));
             const newGuideIds = currentIds.join(',');
 
@@ -833,31 +853,42 @@ async function addGuide(requestId, guideId) {
 
             if (response.ok) {
                 request.assigned_guide_id = newGuideIds;
-                const guide = tourGuides.find(g => g.id == guideId);
                 showNotification('Guide Added', `${guide.name} added to tour`, 'success');
 
                 // Re-render just this selector
-                const selector = document.getElementById(`guide-selector-${requestId}`);
                 if (selector) {
                     selector.innerHTML = renderGuideSelector(requestId, newGuideIds);
                 }
             } else {
                 showNotification('Error', 'Failed to add guide', 'error');
+                if (selector) {
+                    selector.innerHTML = renderGuideSelector(requestId, request.assigned_guide_id);
+                }
             }
         }
     } catch (error) {
         console.error('Error adding guide:', error);
         showNotification('Error', 'Failed to add guide', 'error');
+        if (selector && request) {
+            selector.innerHTML = renderGuideSelector(requestId, request.assigned_guide_id);
+        }
     }
 }
 
 // Remove guide from request
 async function removeGuide(requestId, guideIdToRemove) {
+    const selector = document.getElementById(`guide-selector-${requestId}`);
+    const request = tourRequests.find(r => r.id == requestId);
+
     try {
-        const request = tourRequests.find(r => r.id == requestId);
         const currentIds = parseGuideIds(request.assigned_guide_id);
         const newIds = currentIds.filter(id => id !== String(guideIdToRemove));
         const newGuideIds = newIds.join(',');
+
+        // Show saving state while the server writes and sends emails
+        if (selector) {
+            selector.innerHTML = renderGuideSelector(requestId, request.assigned_guide_id, { type: 'remove', id: String(guideIdToRemove) });
+        }
 
         const response = await fetch('/api/assign-guide', {
             method: 'PUT',
@@ -875,16 +906,21 @@ async function removeGuide(requestId, guideIdToRemove) {
             showNotification('Guide Removed', `${guide.name} removed from tour`, 'info');
 
             // Re-render just this selector
-            const selector = document.getElementById(`guide-selector-${requestId}`);
             if (selector) {
                 selector.innerHTML = renderGuideSelector(requestId, newGuideIds);
             }
         } else {
             showNotification('Error', 'Failed to remove guide', 'error');
+            if (selector) {
+                selector.innerHTML = renderGuideSelector(requestId, request.assigned_guide_id);
+            }
         }
     } catch (error) {
         console.error('Error removing guide:', error);
         showNotification('Error', 'Failed to remove guide', 'error');
+        if (selector && request) {
+            selector.innerHTML = renderGuideSelector(requestId, request.assigned_guide_id);
+        }
     }
 }
 
