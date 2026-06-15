@@ -2,9 +2,14 @@ name: Daily Tour Feedback Emails
 
 on:
   schedule:
-    # Run daily at 8:00 AM EST (12:00 UTC, accounting for EST offset)
-    # This runs 1 hour after reminders to give tours time to complete
-    - cron: '0 12 * * *'
+    # Target: ~8:00 AM Eastern, 1 hour after reminders to give tours time to
+    # complete. GitHub cron is UTC-only with no DST awareness, so we register
+    # two schedules — one for EDT, one for EST — and the job runs only the one
+    # matching the currently active Eastern offset (see the DST guard in the
+    # send step). Both are set ~1h early and off the top-of-hour to bias the
+    # send toward 8 AM.
+    - cron: '50 10 * * *'  # EDT: 10:50 UTC, lands ~8 AM after typical lag
+    - cron: '50 11 * * *'  # EST: 11:50 UTC, lands ~8 AM after typical lag
   # Allow manual triggering for testing
   workflow_dispatch:
 
@@ -15,6 +20,22 @@ jobs:
     steps:
     - name: Send feedback emails
       run: |
+        # --- DST guard: run only the cron matching the active Eastern offset ---
+        # GitHub cron is UTC-only, so both EDT and EST schedules fire year-round.
+        # github.event.schedule is the cron string that triggered this run; we
+        # compare it against the current America/New_York offset and skip the
+        # mismatched one. Manual (workflow_dispatch) runs have an empty schedule
+        # and always proceed.
+        offset=$(TZ="America/New_York" date +%z)
+        schedule="${{ github.event.schedule }}"
+        if [ -n "$schedule" ]; then
+          if { [ "$offset" = "-0400" ] && [ "$schedule" != "50 10 * * *" ]; } || \
+             { [ "$offset" = "-0500" ] && [ "$schedule" != "50 11 * * *" ]; }; then
+            echo "Skipping: schedule '$schedule' does not match active Eastern offset $offset."
+            exit 0
+          fi
+        fi
+
         echo "Triggering daily feedback emails..."
         
         # Call the Netlify function endpoint
@@ -43,4 +64,4 @@ jobs:
     - name: Log completion
       run: |
         echo "Daily feedback job completed at $(date -u)"
-        echo "Next run: Tomorrow at 8:00 AM EST"
+        echo "Next run: Tomorrow ~8:00 AM Eastern"
