@@ -242,13 +242,17 @@
                 </div>
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <p class="text-gray-600 dark:text-gray-200 mb-4">Need a tour outside of our public ones for your group, school, or organization? Request a tour and we'll see if we can accomodate your request.</p>
-                    
-                    
+
+                    <div class="bg-amber-50 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-600 text-amber-800 dark:text-amber-200 px-4 py-3 rounded-lg mb-4">
+                        <p><strong>Special tour requests are paused for now.</strong> We will resume accepting requests in the fall.</p>
+                    </div>
+
                     <div class="text-center">
-                        <button 
-                            onclick="showSpecialTourRequestForm()" 
-                            class="bg-[#75988d] hover:bg-[#5a7066] text-white font-medium px-6 py-3 rounded-lg transition-colors cursor-pointer special-tour-btn" 
-                             
+                        <button
+                            disabled
+                            aria-disabled="true"
+                            class="bg-gray-400 dark:bg-gray-600 text-white font-medium px-6 py-3 rounded-lg cursor-not-allowed opacity-60 special-tour-btn"
+
                         >
                             Request special tour
                         </button>
